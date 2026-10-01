@@ -47,7 +47,8 @@ class QuadratureRule(object):
         <ex-integrate>`.
         """
 
-        raise NotImplementedError
+        # compute the weighted sum of the function evaluated at each quadrature point (eq 1.4)
+        return np.dot([function(x) for x in self.points], self.weights)
 
 def gauss_quadrature(cell, degree):
     """Return a Gauss-Legendre :class:`QuadratureRule`.
