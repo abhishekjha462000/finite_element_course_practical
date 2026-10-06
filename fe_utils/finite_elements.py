@@ -18,7 +18,32 @@ def lagrange_points(cell, degree):
 
     """
 
-    raise NotImplementedError
+    points = []
+
+    for d in range(cell.dim + 1):
+        for e in range(len(cell.topology[d])):
+            if d == 0:
+                points.append(cell.vertices[e])
+                
+            elif d == 1 and degree >= 2:
+                v0_idx, v1_idx = cell.topology[1][e]
+                v0 = np.array(cell.vertices[v0_idx])
+                v1 = np.array(cell.vertices[v1_idx])
+                
+                for k in range(1, degree):
+                    points.append(v0 + (k / degree) * (v1 - v0))
+                    
+            elif d == 2 and degree >= 3:
+                v0_idx, v1_idx, v2_idx = cell.topology[2][e]
+                v0 = np.array(cell.vertices[v0_idx])
+                v1 = np.array(cell.vertices[v1_idx])
+                v2 = np.array(cell.vertices[v2_idx])
+                
+                for j in range(1, degree):
+                    for i in range(1, degree - j):
+                        points.append(v0 + (i / degree) * (v1 - v0) + (j / degree) * (v2 - v0))
+
+    return np.array(points)
 
 
 def vandermonde_matrix(cell, degree, points, grad=False):
