@@ -61,7 +61,36 @@ def vandermonde_matrix(cell, degree, points, grad=False):
     <ex-vandermonde>`.
     """
 
-    raise NotImplementedError
+    if grad:
+        # We will handle the gradient in a future exercise
+        raise NotImplementedError
+        
+    v_columns = []
+    
+    if cell.dim == 1:
+        # Extract all x coordinates (first column of points)
+        x = points[:, 0]
+        
+        # Loop through polynomial degrees from 0 to 'degree'
+        for i in range(degree + 1):
+            # Term: x^i
+            v_columns.append(x**i)
+            
+    elif cell.dim == 2:
+        # Extract all x and y coordinates
+        x = points[:, 0]
+        y = points[:, 1]
+        
+        # Loop through total polynomial degrees 'i' from 0 to 'degree'
+        for i in range(degree + 1):
+            # Loop through the power of y 'j' from 0 to 'i'
+            for j in range(i + 1):
+                # The power of x is (i - j), the power of y is j
+                # Term: x^(i-j) * y^j
+                v_columns.append((x**(i - j)) * (y**j))
+                
+    # Stack the 1D arrays as columns to form the final 2D matrix
+    return np.column_stack(v_columns)
 
 
 class FiniteElement(object):
