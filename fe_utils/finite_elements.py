@@ -45,7 +45,6 @@ def lagrange_points(cell, degree):
 
     return np.array(points)
 
-
 def vandermonde_matrix(cell, degree, points, grad=False):
     """Construct the generalised Vandermonde matrix for polynomials of the
     specified degree on the cell provided.
@@ -56,43 +55,44 @@ def vandermonde_matrix(cell, degree, points, grad=False):
     :param grad: whether to evaluate the Vandermonde matrix or its gradient.
 
     :returns: the generalised :ref:`Vandermonde matrix <sec-vandermonde>`
-
-    The implementation of this function is left as an :ref:`exercise
-    <ex-vandermonde>`.
     """
-
-    if grad:
-        # We will handle the gradient in a future exercise
-        raise NotImplementedError
-        
     v_columns = []
     
     if cell.dim == 1:
-        # Extract all x coordinates (first column of points)
-        x = points[:, 0]
+        # Extract x coordinates and force them to be floats
+        x = points[:, 0].astype(float)
         
-        # Loop through polynomial degrees from 0 to 'degree'
         for i in range(degree + 1):
-            # Term: x^i
-            v_columns.append(x**i)
-            
-    elif cell.dim == 2:
-        # Extract all x and y coordinates
-        x = points[:, 0]
-        y = points[:, 1]
-        
-        # Loop through total polynomial degrees 'i' from 0 to 'degree'
-        for i in range(degree + 1):
-            # Loop through the power of y 'j' from 0 to 'i'
-            for j in range(i + 1):
-                # The power of x is (i - j), the power of y is j
-                # Term: x^(i-j) * y^j
-                v_columns.append((x**(i - j)) * (y**j))
+            if not grad:
+                v_columns.append(x**i)
+            else:
+                # Gradient: dx = i * x^(i-1)
+                dx = np.nan_to_num(i * x**(i - 1))
+                v_columns.append(dx.reshape(-1, 1))
                 
-    # Stack the 1D arrays as columns to form the final 2D matrix
-    return np.column_stack(v_columns)
-
-
+    elif cell.dim == 2:
+        # Extract x and y coordinates and force them to be floats
+        x = points[:, 0].astype(float)
+        y = points[:, 1].astype(float)
+        
+        for i in range(degree + 1):
+            for j in range(i + 1):
+                p_x = i - j
+                p_y = j
+                
+                if not grad:
+                    v_columns.append((x**p_x) * (y**p_y))
+                else:
+                    # Partial derivatives w.r.t x and y
+                    dx = np.nan_to_num(p_x * x**(p_x - 1) * y**p_y)
+                    dy = np.nan_to_num(p_y * x**p_x * y**(p_y - 1))
+                    v_columns.append(np.column_stack((dx, dy)))
+                
+    if not grad:
+        return np.column_stack(v_columns)
+    else:
+        return np.stack(v_columns, axis=1)
+    
 class FiniteElement(object):
     def __init__(self, cell, degree, nodes, entity_nodes=None):
         """A finite element defined over cell.
