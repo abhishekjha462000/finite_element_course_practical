@@ -142,7 +142,21 @@ class FiniteElement(object):
         """Evaluate the basis functions of this finite element at the points
         provided.
 
-        # ... (keep your existing docstring) ...
+        :param points: a list of coordinate tuples at which to
+            tabulate the basis.
+        :param grad: whether to return the tabulation of the basis or the
+            tabulation of the gradient of the basis.
+
+        :result: an array containing the value of each basis function
+            at each point. If `grad` is `True`, the gradient vector of
+            each basis vector at each point is returned as a rank 3
+            array. The shape of the array is (points, nodes) if
+            ``grad`` is ``False`` and (points, nodes, dim) if ``grad``
+            is ``True``.
+
+        The implementation of this method is left as an :ref:`exercise
+        <ex-tabulate>`.
+
         """
         if grad:
             raise NotImplementedError
@@ -152,7 +166,6 @@ class FiniteElement(object):
         
         # 2. Multiply by the basis coefficients (Eq 2.10)
         return np.dot(V, self.basis_coefs)
-    
 
     def interpolate(self, fn):
         """Interpolate fn onto this finite element by evaluating it
