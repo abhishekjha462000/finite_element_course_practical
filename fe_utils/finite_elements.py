@@ -131,10 +131,9 @@ class FiniteElement(object):
                 [len(entity_nodes[d][0]) for d in range(cell.dim + 1)]
             )
 
-        # Replace this exception with some code which sets
-        # self.basis_coefs
-        # to an array of polynomial coefficients defining the basis functions.
-        raise NotImplementedError
+        # Construct the Vandermonde matrix for the nodes and invert it (Equation 2.9)
+        V = vandermonde_matrix(self.cell, self.degree, self.nodes)
+        self.basis_coefs = np.linalg.inv(V)
 
         #: The number of nodes in this element.
         self.node_count = nodes.shape[0]
@@ -143,24 +142,17 @@ class FiniteElement(object):
         """Evaluate the basis functions of this finite element at the points
         provided.
 
-        :param points: a list of coordinate tuples at which to
-            tabulate the basis.
-        :param grad: whether to return the tabulation of the basis or the
-            tabulation of the gradient of the basis.
-
-        :result: an array containing the value of each basis function
-            at each point. If `grad` is `True`, the gradient vector of
-            each basis vector at each point is returned as a rank 3
-            array. The shape of the array is (points, nodes) if
-            ``grad`` is ``False`` and (points, nodes, dim) if ``grad``
-            is ``True``.
-
-        The implementation of this method is left as an :ref:`exercise
-        <ex-tabulate>`.
-
+        # ... (keep your existing docstring) ...
         """
-
-        raise NotImplementedError
+        if grad:
+            raise NotImplementedError
+            
+        # 1. Evaluate the monomial basis at the provided points
+        V = vandermonde_matrix(self.cell, self.degree, points)
+        
+        # 2. Multiply by the basis coefficients (Eq 2.10)
+        return np.dot(V, self.basis_coefs)
+    
 
     def interpolate(self, fn):
         """Interpolate fn onto this finite element by evaluating it
@@ -196,10 +188,8 @@ class LagrangeElement(FiniteElement):
         The implementation of this class is left as an :ref:`exercise
         <ex-lagrange-element>`.
         """
-
-        raise NotImplementedError
-        # Use lagrange_points to obtain the set of nodes.  Once you
-        # have obtained nodes, the following line will call the
-        # __init__ method on the FiniteElement class to set up the
-        # basis coefficients.
+        # Use lagrange_points to obtain the set of equispaced nodes
+        nodes = lagrange_points(cell, degree)
+        
+        # Call the __init__ method on the FiniteElement class to set up the basis coefficients
         super(LagrangeElement, self).__init__(cell, degree, nodes)
