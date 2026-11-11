@@ -158,14 +158,16 @@ class FiniteElement(object):
         <ex-tabulate>`.
 
         """
-        if grad:
-            raise NotImplementedError
-            
-        # 1. Evaluate the monomial basis at the provided points
-        V = vandermonde_matrix(self.cell, self.degree, points)
+        # 1. Evaluate the Vandermonde matrix (or its gradient tensor)
+        V = vandermonde_matrix(self.cell, self.degree, points, grad=grad)
         
-        # 2. Multiply by the basis coefficients (Eq 2.10)
-        return np.dot(V, self.basis_coefs)
+        # 2. Multiply by the basis coefficients
+        if grad:
+            # Contract the 'terms' dimension (j) to get shape (points, nodes, dim)
+            return np.einsum("ijk,jl->ilk", V, self.basis_coefs)
+        else:
+            # Standard 2D matrix multiplication
+            return np.dot(V, self.basis_coefs)
 
     def interpolate(self, fn):
         """Interpolate fn onto this finite element by evaluating it
@@ -182,7 +184,7 @@ class FiniteElement(object):
 
         """
 
-        raise NotImplementedError
+        return np.array([fn(x) for x in self.nodes])
 
     def __repr__(self):
         return "%s(%s, %s)" % (self.__class__.__name__, self.cell, self.degree)
