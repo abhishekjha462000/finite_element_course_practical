@@ -205,6 +205,22 @@ class LagrangeElement(FiniteElement):
         """
         # Use lagrange_points to obtain the set of equispaced nodes
         nodes = lagrange_points(cell, degree)
+
+        entity_nodes = {d: {} for d in range(cell.dim + 1)}
+        
+        node_idx = 0
+        
+        for d in range(cell.dim + 1):
+            for e in range(len(cell.topology[d])):
+                if d == 0:
+                    num_nodes = 1
+                elif d == 1:
+                    num_nodes = max(0, degree - 1)
+                elif d == 2:
+                    num_nodes = max(0, (degree - 1) * (degree - 2) // 2)
+                    
+                entity_nodes[d][e] = list(range(node_idx, node_idx + num_nodes))
+                node_idx += num_nodes
         
         # Call the __init__ method on the FiniteElement class to set up the basis coefficients
-        super(LagrangeElement, self).__init__(cell, degree, nodes)
+        super(LagrangeElement, self).__init__(cell, degree, nodes, entity_nodes=entity_nodes)
